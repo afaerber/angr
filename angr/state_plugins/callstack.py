@@ -44,7 +44,8 @@ class CallStack(SimStatePlugin):
     # Public methods
     #
 
-    def copy(self, with_tail=True):
+    @SimStatePlugin.memo
+    def copy(self, memo, with_tail=True):
         n = CallStack(
                 call_site_addr=self.call_site_addr,
                 func_addr=self.func_addr,
@@ -233,7 +234,7 @@ class CallStack(SimStatePlugin):
         if self.state is not None:
             self.state.register_plugin('callstack', cf)
             self.state.history.recent_stack_actions.append(CallStackAction(
-                hash(cf), len(cf), 'push', callframe=cf.copy(False)
+                hash(cf), len(cf), 'push', callframe=cf.copy({}, with_tail=False)
             ))
 
         return cf
@@ -244,7 +245,7 @@ class CallStack(SimStatePlugin):
         """
         if self.next is None:
             raise SimEmptyCallStackError("Cannot pop a frame from an empty call stack.")
-        new_list = self.next.copy()
+        new_list = self.next.copy({})
 
         if self.state is not None:
             self.state.register_plugin('callstack', new_list)

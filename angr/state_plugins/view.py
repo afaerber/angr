@@ -67,7 +67,8 @@ class SimRegNameView(SimStatePlugin):
             return self.state.arch.registers.keys() + ['flags']
         return self.state.arch.registers.keys()
 
-    def copy(self):
+    @SimStatePlugin.memo
+    def copy(self, memo):
         return SimRegNameView()
 
     def merge(self, others, merge_conditions, common_ancestor=None):
@@ -196,7 +197,8 @@ class SimMemView(SimStatePlugin):
     def __cmp__(self, other):
         raise ValueError("Trying to compare SimMemView is not what you want to do")
 
-    def copy(self):
+    @SimStatePlugin.memo
+    def copy(self, memo):
         return SimMemView()
 
     def merge(self, others, merge_conditions, common_ancestor=None):

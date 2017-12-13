@@ -133,7 +133,8 @@ class GDB(SimStatePlugin):
         num = int(binascii.hexlify(data), 16)
         return claripy.BVV(num, sz)
 
-    def copy(self):
+    @SimStatePlugin.memo
+    def copy(self, memo):
         return GDB()
 
 

@@ -194,6 +194,7 @@ class SimStateLibc(SimStatePlugin):
         self.max_buffer_size = 48
         self.max_strtol_len = 11 # len(str(2**31)) + 1
         self.max_memcpy_size = 4096
+        self.max_packet_size = 256
 
         # strtok
         self.strtok_heap = [ ]
@@ -217,7 +218,8 @@ class SimStateLibc(SimStatePlugin):
 
         self._errno_location = None
 
-    def copy(self):
+    @SimStatePlugin.memo
+    def copy(self, memo):
         c = SimStateLibc()
         c.heap_location = self.heap_location
         c.mmap_base = self.mmap_base

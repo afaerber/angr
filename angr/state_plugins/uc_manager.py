@@ -54,7 +54,8 @@ class SimUCManager(SimStatePlugin):
         l.debug("Assigned new memory region %s", ptr)
         return ptr
 
-    def copy(self):
+    @SimStatePlugin.memo
+    def copy(self, memo):
         return SimUCManager(man=self)
 
     def get_alloc_depth(self, addr):

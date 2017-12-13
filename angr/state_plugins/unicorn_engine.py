@@ -349,7 +349,8 @@ class Unicorn(SimStatePlugin):
 
         self.time = None
 
-    def copy(self):
+    @SimStatePlugin.memo
+    def copy(self, memo):
         u = Unicorn(
             syscall_hooks=dict(self.syscall_hooks),
             cache_key=self.cache_key,
@@ -982,13 +983,15 @@ class Unicorn(SimStatePlugin):
 
         # process the concrete transmits
         i = 0
+        stdout = self.state.posix.get_fd(1)
+
         while True:
             record = _UC_NATIVE.process_transmit(self._uc_state, i)
             if not bool(record):
                 break
 
             string = ctypes.string_at(record.contents.data, record.contents.count)
-            self.state.posix.write(1, string, record.contents.count)
+            stdout.write_data(string)
             i += 1
 
         if self.stop_reason in (STOP.STOP_NORMAL, STOP.STOP_SYSCALL):

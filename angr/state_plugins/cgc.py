@@ -61,7 +61,8 @@ class SimStateCGC(SimStatePlugin):
     def addr_invalid(self, a):
         return not self.state.se.solution(a != 0, True)
 
-    def copy(self):
+    @SimStatePlugin.memo
+    def copy(self, memo):
         c = SimStateCGC()
         c.allocation_base = self.allocation_base
         c.time = self.time

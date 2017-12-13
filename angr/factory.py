@@ -166,8 +166,7 @@ class AngrObjectFactory(object):
         """
         return self.project.simos.state_call(addr, *args, **kwargs)
 
-    def tracer_state(self, input_content=None, magic_content=None, preconstrain_input=True,
-                     preconstrain_flag=True, **kwargs):
+    def tracer_state(self, **kwargs):
         """
         Returns a new SimState object correctly configured for tracing.
 
@@ -181,11 +180,7 @@ class AngrObjectFactory(object):
         :returns : The new SimState for tracing.
         :rtype   : angr.sim_state.SimState
         """
-        return self.project.simos.state_tracer(input_content=input_content,
-                                                magic_content=magic_content,
-                                                preconstrain_input=preconstrain_input,
-                                                preconstrain_flag=preconstrain_flag,
-                                                **kwargs)
+        return self.project.simos.state_tracer(**kwargs)
 
     def simgr(self, thing=None, **kwargs):
         return self.simulation_manager(thing=thing, **kwargs)

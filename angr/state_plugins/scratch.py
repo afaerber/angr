@@ -127,7 +127,8 @@ class SimStateScratch(SimStatePlugin):
 
         self.state._inspect('tmp_write', BP_AFTER)
 
-    def copy(self):
+    @SimStatePlugin.memo
+    def copy(self, memo):
         return SimStateScratch(scratch=self)
 
     def merge(self, others, merge_conditions, common_ancestor=None):

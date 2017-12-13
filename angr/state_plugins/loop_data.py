@@ -32,7 +32,8 @@ class SimStateLoopData(SimStatePlugin):
         l.warning("Widening is not implemented for loop data!")
         return False
 
-    def copy(self):
+    @SimStatePlugin.memo
+    def copy(self, memo):
         return SimStateLoopData(trip_counts=copy.deepcopy(self.trip_counts),
                                 current_loop=list(self.current_loop))
 

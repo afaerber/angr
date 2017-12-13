@@ -200,7 +200,8 @@ class SimFastMemory(SimMemory):
     def _copy_contents(self, dst, src, size, condition=None, src_memory=None, dst_memory=None):
         raise SimFastMemoryError("copy unsupported")
 
-    def copy(self):
+    @SimMemory.memo
+    def copy(self, memo):
         return SimFastMemory(
             endness=self.endness,
             contents=dict(self._contents),

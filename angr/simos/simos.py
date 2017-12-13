@@ -11,11 +11,11 @@ from ..errors import (
 )
 
 from ..sim_state import SimState
-from ..state_plugins import SimStatePreconstrainer
+from ..state_plugins import SimStatePreconstrainer, SimSystemPosix
 from ..calling_conventions import DEFAULT_CC
 from ..procedures import SIM_PROCEDURES as P
 from .. import sim_options as o
-from ..storage.file import SimFile
+from ..storage.file import SimFileStream, SimFileBase
 from ..misc import IRange
 
 
@@ -73,7 +73,8 @@ class SimOS(object):
                     return
             self.project.hook(sym.rebased_addr, hook)
 
-    def state_blank(self, addr=None, initial_prefix=None, stack_size=1024*1024*8, **kwargs):
+    def state_blank(self, addr=None, initial_prefix=None, stack_size=1024*1024*8,
+            stdin=None, **kwargs):
         """
         Initialize a blank state.
 
@@ -111,6 +112,17 @@ class SimOS(object):
             kwargs['os_name'] = self.name
 
         state = SimState(self.project, **kwargs)
+
+        if stdin is not None and not isinstance(stdin, SimFileBase):
+            if type(stdin) is type:
+                stdin = stdin(name='stdin', has_end=False)
+            else:
+                stdin = SimFileStream(name='stdin', content=stdin, has_end=True)
+
+        last_addr = self.project.loader.main_object.max_addr
+        brk = last_addr - last_addr % 0x1000 + 0x1000
+        state.register_plugin('posix', SimSystemPosix(stdin=stdin, brk=brk))
+
 
         stack_end = state.arch.initial_sp
         if o.ABSTRACT_MEMORY not in state.options:
@@ -191,36 +203,12 @@ class SimOS(object):
         return state
 
     def state_tracer(self, input_content=None, magic_content=None, preconstrain_input=True,
-                     preconstrain_flag=True, constrained_addrs=None, **kwargs):
-
-        if input_content is None:
-            return self.state_full_init(**kwargs)
-
-        if type(input_content) is str:
-            fs = {'/dev/stdin': SimFile("/dev/stdin", "r", size=len(input_content))}
-        elif input_content.getattr('stdin', None) is not None:
-            fs = input_content.stdin
-        else:
-            raise TracerEnvironmentError("Input for tracer should be either a string or a TracerPoV for CGC binaries.")
-
-        kwargs['fs'] = kwargs.get('fs', fs)
-
-        kwargs['add_options'] |= {o.CGC_ZERO_FILL_UNCONSTRAINED_MEMORY,
-                                  o.REPLACEMENT_SOLVER,
-                                  o.UNICORN,
-                                  o.UNICORN_HANDLE_TRANSMIT_SYSCALL}
-
-        kwargs['remove_options'] |= {o.EFFICIENT_STATE_MERGING} | o.simplification
+                     preconstrain_flag=True, constrained_addrs=None, store_full_input=False, **kwargs):
+        kwargs['mode'] = 'tracing'
+        kwargs['stdin'] = SimFileStream
 
         state = self.state_full_init(**kwargs)
-
-        # Create the preconstrainer plugin
-        state.register_plugin('preconstrainer',
-                              SimStatePreconstrainer(input_content=input_content,
-                                                     magic_content=magic_content,
-                                                     preconstrain_input=preconstrain_input,
-                                                     preconstrain_flag=preconstrain_flag,
-                                                     constrained_addrs=constrained_addrs))
+        state.preconstrainer.preconstrain_file(input_content, state.posix.stdin, set_length=True)
 
         return state
 

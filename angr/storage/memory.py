@@ -112,7 +112,8 @@ class RegionMap(object):
     # Public methods
     #
 
-    def copy(self):
+    @SimStatePlugin.memo
+    def copy(self, memo):
         r = RegionMap(is_stack=self.is_stack)
 
         # A shallow copy should be enough, since we never modify any RegionDescriptor object in-place
